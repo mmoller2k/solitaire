@@ -1,0 +1,93 @@
+/* styles.css */
+body {
+  justify-content: center;
+  align-items: center;
+  height: 40vh;
+  margin: 0;
+  background: #0a600a;
+  font-family: sans-serif;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #064f1a;
+  color: white;
+  padding: 0.5rem 1rem;
+}
+#timer{
+      font-size: 1.2rem;
+      font-weight: bold;
+}
+main {
+  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+#game {
+  transform: scale(1.5); /* Adjust this scale for your preferred size */
+  transform-origin: top center;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+}
+
+.card {
+    width: 70px;
+    height: 94px;
+    border: none;
+    background-color: transparent;
+    display: inline-block;
+    margin: 5px;
+    position: relative;
+}
+
+.slot {
+    position: relative;
+    width: 70px;
+    height: 94px;
+}
+
+.card, .slot {
+  user-select: none;   /* prevent text selection */
+  -webkit-user-drag: none; /* prevent Safari image dragging */
+}
+
+.drag-source .card {
+  filter: brightness(1.1);
+  transform: translateY(-4px);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.jackd { display: none }
+.queend { display: none; }
+.kingd { display: none; }
+
+/* Jack styles */
+.jack .crown { fill: brown }
+.jack .hair  { fill: #fc0; }
+.jack .robe  { fill: #44f; }
+.jack .trim  { fill: #044; }
+.jack .jackd { display: inline; }
+
+/* Queen styles */
+.queen .crown { fill: #ccc; }
+.queen .hair  { fill: #444; }
+.queen .robe  { fill: #f00; }
+.queen .trim  { fill: #fff; }
+.queen .queend  { display: inline; }
+
+/* King styles */
+.king .crown { fill: gold; }
+.king .hair  { fill: brown; }
+.king .robe  { fill: #84f;}
+.king .trim  { fill: #c4c; }
+.king .kingd { display: inline; }
+
