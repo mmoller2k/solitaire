@@ -436,7 +436,6 @@ function cardGraphic_txt(card) {
     cardEl.style.flexDirection = 'column';
     cardEl.style.justifyContent = 'space-between';
     cardEl.style.fontFamily = 'monospace';
-    cardEl.classList.add('card');
     return cardEl;
 }
 
@@ -488,7 +487,6 @@ function cardGraphic_utf8(card) {
     }
 
     cardDiv.textContent = symbol;
-    cardDiv.classList.add('card');
     return cardDiv;
 }
 
@@ -505,7 +503,6 @@ function cardGraphic_png(card) {
     el.style.backgroundPosition = `-${x}px -${y}px`;
     el.style.width = `${cardWidth-4}px`;
     el.style.height = `${cardHeight-4}px`;
-    el.classList.add('card');
     return el;
 }
 
@@ -721,7 +718,6 @@ function cardGraphic_svg(card) {
   svg.setAttribute("display", "inline-block");
   wrap.style.width = "75px";
   wrap.style.height = "inline";
-  wrap.classList.add('card');
   wrap.appendChild(svg);
   return wrap;
 }
@@ -794,7 +790,8 @@ function addCardEvents(card, el) {
             if(json.length == 0) return;
             const data = JSON.parse(json);
             const fromSlot = getSlotById(data.fromSlotId);
-            fromSlot.element.classList.remove('drag-source');
+            //fromSlot.element.classList.remove('drag-source');
+            setTimeout(() => fromSlot.element.classList.add('drag-reset'), 0.2);
         });
     }
     

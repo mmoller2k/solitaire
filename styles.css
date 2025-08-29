@@ -60,9 +60,15 @@ main {
   -webkit-user-drag: none; /* prevent Safari image dragging */
 }
 
-.drag-source .card {
-  filter: brightness(1.1);
+.drag-source {
+  filter: brightness(1.2);
   transform: translateY(-4px);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.drag-reset {
+  filter: brightness(1);
+  transform: translateY(0px);
   transition: transform 0.2s ease, filter 0.2s ease;
 }
 
