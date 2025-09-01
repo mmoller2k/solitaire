@@ -69,6 +69,11 @@ main {
   -webkit-user-drag: none; /* prevent Safari image dragging */
 }
 
+.hidden {
+  opacity: 0;
+  pointer-events: none; /* don’t block underlying targets */
+}
+
 .jackd { display: none }
 .queend { display: none; }
 .kingd { display: none; }

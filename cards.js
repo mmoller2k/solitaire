@@ -11,6 +11,7 @@ let new_slot_id=0;
 let new_stack_id=103;
 let currentRenderStyle = 'SVG';
 let dragSource = null;
+let dragIndex = 0;
 let startTime = null;
 let timerInterval = null;
 
@@ -266,22 +267,22 @@ class Slot {
             e.preventDefault();
             pushUndo();
             const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            const fromSlot = dragSource;
-            if (!fromSlot){
+            //const fromSlot = dragSource;
+            if (!dragSource){
                 return;
             }
-            const movingCards = fromSlot.stack.cards.splice(data.cardIndex);
-            if(game.drop(fromSlot, this, movingCards)){ //if valid drop
+            const movingCards = dragSource.stack.cards.splice(dragIndex);
+            if(game.drop(dragSource, this, movingCards)){ //if valid drop
                 this.stack.cards.push(...movingCards);
-                const autoSlots = game.after(fromSlot);
+                const autoSlots = game.after(dragSource);
                 autoMoveSlots(autoSlots);
                 showVictory();
             }
             else{
-                fromSlot.stack.cards.push(...movingCards);
+                dragSource.stack.cards.push(...movingCards);
             }
             this.updateTitle();
-            fromSlot.render();
+            dragSource.render();
             this.render();
         });
     }
@@ -743,11 +744,12 @@ function addCardEvents(card, el) {
                 e.preventDefault(); // stop phantom drags
                 return;            
             }
-            const movingCards = card.slot.stack.cards.slice(card.index);
+            dragIndex = card.index;
+            dragSource = card.slot;
+            const movingCards = card.slot.stack.cards.slice(dragIndex);
             e.dataTransfer.setData('text/plain', JSON.stringify({
                 cardIndex: card.index
             }));
-            dragSource = card.slot;
             card.slot.element.classList.add('drag-source');
             // Create a preview container
             const preview = document.createElement('div');
@@ -763,6 +765,7 @@ function addCardEvents(card, el) {
 
             // Add each card's visual to the preview
             movingCards.forEach((c, i) => {
+                setTimeout(() => c.element.classList.add('hidden'), 20); //don't let Chrome clobber the preview
                 const cardEl = cardGraphic(c);
                 cardEl.style.position = 'absolute';
                 cardEl.style.top = `${i * 24}px`;
@@ -781,6 +784,7 @@ function addCardEvents(card, el) {
             setTimeout(() => document.body.removeChild(preview), 0);
             
             e.target.addEventListener('dragend', () => {
+              for(const c of movingCards) c.element.classList.remove('hidden');
               preview.remove();
             });                                
         });
