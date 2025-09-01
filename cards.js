@@ -10,7 +10,7 @@ const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K',
 let new_slot_id=0;
 let new_stack_id=103;
 let currentRenderStyle = 'SVG';
-
+let dragSource = null;
 let startTime = null;
 let timerInterval = null;
 
@@ -266,7 +266,7 @@ class Slot {
             e.preventDefault();
             pushUndo();
             const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            const fromSlot = getSlotById(data.fromSlotId);
+            const fromSlot = dragSource;
             if (!fromSlot){
                 return;
             }
@@ -745,9 +745,9 @@ function addCardEvents(card, el) {
             }
             const movingCards = card.slot.stack.cards.slice(card.index);
             e.dataTransfer.setData('text/plain', JSON.stringify({
-                fromSlotId: card.slot.id,
                 cardIndex: card.index
             }));
+            dragSource = card.slot;
             card.slot.element.classList.add('drag-source');
             // Create a preview container
             const preview = document.createElement('div');
@@ -785,13 +785,9 @@ function addCardEvents(card, el) {
             });                                
         });
 
-        el.addEventListener('dragend', (e) => {
-            const json = e.dataTransfer.getData('text/plain');
-            if(json.length == 0) return;
-            const data = JSON.parse(json);
-            const fromSlot = getSlotById(data.fromSlotId);
-            //fromSlot.element.classList.remove('drag-source');
-            setTimeout(() => fromSlot.element.classList.add('drag-reset'), 0.2);
+        el.addEventListener('dragend', () => {
+            if(!dragSource) return;
+            dragSource.element.classList.remove('drag-source');
         });
     }
     
@@ -895,6 +891,7 @@ function layoutSlots(config) {
     group.slots.forEach((slotConf, index) => {
       const slot = new Slot(slotConf.id, slotConf.type, slotConf.layout, slotConf.fmax);
       game.allSlots.push(slot);
+      slot.element.classList.add('card');
       row.appendChild(slot.element);
     });
 

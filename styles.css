@@ -45,31 +45,28 @@ main {
     border: none;
     background-color: transparent;
     display: inline-block;
-    margin: 5px;
     position: relative;
 }
 
 .slot {
-    position: relative;
-    width: 70px;
-    height: 94px;
+  --lift: 0px;
+  --bright: 1;
+  transform: translateY(var(--lift));
+  filter: brightness(var(--bright));
+  transition: transform 0.2s ease, filter 0.2s ease;
+  position: relative;
+  width: 80px;
+  height: 120x;
+}
+
+.slot.drag-source {
+  --lift: -4px;
+  --bright: 1.2;
 }
 
 .card, .slot {
   user-select: none;   /* prevent text selection */
   -webkit-user-drag: none; /* prevent Safari image dragging */
-}
-
-.drag-source {
-  filter: brightness(1.2);
-  transform: translateY(-4px);
-  transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.drag-reset {
-  filter: brightness(1);
-  transform: translateY(0px);
-  transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .jackd { display: none }
