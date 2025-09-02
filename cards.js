@@ -14,7 +14,7 @@ let dragSource = null;
 let dragTarget = null;
 let dragIndex = 0;
 let startTime = null;
-let timerInterval = null;
+let timerInterval;
 const undoStack = [];
 
 function registerGame(config) {
@@ -24,6 +24,7 @@ function registerGame(config) {
 }
 
 function startTimer() {
+    stopTimer();
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 1000);
 }
@@ -955,7 +956,6 @@ function reRenderAllCards() {
         slot.render();
     });
 }
-
 
 function showVictory() {
     if(game.victory()){
