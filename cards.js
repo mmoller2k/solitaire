@@ -11,9 +11,11 @@ let new_slot_id=0;
 let new_stack_id=103;
 let currentRenderStyle = 'SVG';
 let dragSource = null;
+let dragTarget = null;
 let dragIndex = 0;
 let startTime = null;
 let timerInterval = null;
+const undoStack = [];
 
 function registerGame(config) {
     const game = new Game(config);
@@ -45,10 +47,7 @@ function resetTimer() {
 }
 
 function startGame(no) {
-    game = games[no];
-    game.showTitle();
-    game.init();
-    startTimer();
+    startGameName(games[no].name);
 }        
     
 function startGameName(name) {
@@ -57,10 +56,11 @@ function startGameName(name) {
         console.warn(`Game "${name}" not found`);
         return;
     }
-    
+    while(undoStack.length) undoStack.pop();
     game = g;
     game.showTitle();
     game.init();
+    startTimer();
 }        
     
 class Game {
@@ -98,12 +98,12 @@ class Card {
         this.rank = rank;
         this.suit = suit;
         this.faceUp = faceUp;
-        this.slotId = 0;
         this.index = 0;
         this.isCard = !(faceUp && rank === 'B'); //use face-up backs as empty slots
         this.element = cardGraphic(this);
         this.element.setAttribute('draggable', false);
         this.element.classList.add('card');
+        addCardEvents(this, this.element);
     }
     
     flip() {
@@ -117,7 +117,7 @@ class Card {
     newElement() {
         this.element.remove;
         this.element = cardGraphic(this);
-        this.element = updateCardElement(this);
+        addCardEvents(this, this.element);
         return this.element;
     }
     
@@ -265,14 +265,15 @@ class Slot {
 
         this.element.addEventListener('drop', (e) => {
             e.preventDefault();
-            pushUndo();
             const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-            //const fromSlot = dragSource;
             if (!dragSource){
                 return;
             }
+            if(dragSource != this)  pushUndo();
             const movingCards = dragSource.stack.cards.splice(dragIndex);
             if(game.drop(dragSource, this, movingCards)){ //if valid drop
+                dragIndex = this.size();
+                dragTarget = this;
                 this.stack.cards.push(...movingCards);
                 const autoSlots = game.after(dragSource);
                 autoMoveSlots(autoSlots);
@@ -361,7 +362,6 @@ class Slot {
     update() {
         this.stack.cards.forEach((card, index) => {
             card.index = index;
-            card.slotId = this.id;
             card.slot = this;
             updateCardElement(card);
         });            
@@ -737,70 +737,82 @@ function cardGraphic(card) {
     }
 }
 
+function createDragPreview(card, el) {
+    // Create a preview container
+    const preview = document.createElement('div');
+    preview.style.position = 'absolute';
+    preview.style.top = '-9999px';   // Far offscreen
+    preview.style.left = '-9999px';
+    preview.style.zIndex = '-1'; // hide from layout
+    preview.style.pointerEvents = 'none';
+    preview.style.boxShadow = '4px 4px 8px rgba(0, 0, 0, 0.3)';
+    preview.style.borderRadius = '8px';
+    preview.style.overflow = 'visible';  // allow cards to fan out
+    preview.style.opacity = '1';
+    preview.style.brightness = '1.5';
+
+    // Add each card's visual to the preview
+    const movingCards = dragSource.stack.cards.slice(dragIndex);
+    movingCards.forEach((c, i) => {
+        setTimeout(() => c.element.classList.add('hidden'), 20); //don't let Chrome clobber the preview
+        const cardEl = cardGraphic(c);
+        cardEl.style.position = 'absolute';
+        cardEl.style.top = `${i * 24}px`;
+        cardEl.style.left = `${i * 2}px`;
+        cardEl.style.boxShadow = '2px 2px 4px rgba(0, 0, 0, 0.2)';
+        cardEl.style.borderRadius = '6px';
+        cardEl.style.transform = 'rotate(-1deg) scale(1.8)';
+        preview.appendChild(cardEl);
+    });
+    return preview;
+}
+
 function addCardEvents(card, el) {
-    if (el.draggable) {
-        el.addEventListener('dragstart', (e) => {
-            if(!el.draggable) {
-                e.preventDefault(); // stop phantom drags
-                return;            
-            }
-            dragIndex = card.index;
-            dragSource = card.slot;
-            const movingCards = card.slot.stack.cards.slice(dragIndex);
-            e.dataTransfer.setData('text/plain', JSON.stringify({
-                cardIndex: card.index
-            }));
-            card.slot.element.classList.add('drag-source');
-            // Create a preview container
-            const preview = document.createElement('div');
-            preview.style.position = 'absolute';
-            preview.style.top = '-9999px';   // Far offscreen
-            preview.style.left = '-9999px';
-            preview.style.zIndex = '-1'; // hide from layout
-            preview.style.pointerEvents = 'none';
-            preview.style.boxShadow = '4px 4px 8px rgba(0, 0, 0, 0.3)';
-            preview.style.borderRadius = '8px';
-            preview.style.overflow = 'visible';  // allow cards to fan out
-            preview.style.opacity = '0.9';
+    el.addEventListener('dragstart', (e) => {
+        if(!el.draggable) {
+            e.preventDefault(); // stop phantom drags
+            return;            
+        }
+        dragIndex = card.index;
+        dragSource = card.slot;
+        dragTarget = null;
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+            cardIndex: card.index
+        }));
+        card.slot.element.classList.add('drag-source');
 
-            // Add each card's visual to the preview
-            movingCards.forEach((c, i) => {
-                setTimeout(() => c.element.classList.add('hidden'), 20); //don't let Chrome clobber the preview
-                const cardEl = cardGraphic(c);
-                cardEl.style.position = 'absolute';
-                cardEl.style.top = `${i * 24}px`;
-                cardEl.style.left = `${i * 2}px`;
-                cardEl.style.boxShadow = '2px 2px 4px rgba(0, 0, 0, 0.2)';
-                cardEl.style.borderRadius = '6px';
-                cardEl.style.transform = 'rotate(-1deg) scale(1.8)';
-                preview.appendChild(cardEl);
-            });
+        const preview = createDragPreview(card, el);
+        document.body.appendChild(preview);
 
-            document.body.appendChild(preview);
+        e.dataTransfer.setDragImage(preview, 30, 30);
 
-            e.dataTransfer.setDragImage(preview, 30, 30);
-
-            // Cleanup after short delay
-            setTimeout(() => document.body.removeChild(preview), 0);
-            
-            e.target.addEventListener('dragend', () => {
+        // Cleanup after short delay
+        setTimeout(() => document.body.removeChild(preview), 0);
+        
+        e.target.addEventListener('dragend', () => {
+            if (dragTarget){
+              const movingCards = dragTarget.stack.cards.slice(dragIndex);
               for(const c of movingCards) c.element.classList.remove('hidden');
-              preview.remove();
-            });                                
-        });
+            }
+            else{   //dropped back at source
+              const movingCards = dragSource.stack.cards.slice(dragIndex);
+              for(const c of movingCards) c.element.classList.remove('hidden');
+            }
+          preview.remove();
+        });                                
+    });
 
-        el.addEventListener('dragend', () => {
-            if(!dragSource) return;
-            dragSource.element.classList.remove('drag-source');
-        });
-    }
+    el.addEventListener('dragend', () => {
+        if(!dragSource) return;
+        dragSource.element.classList.remove('drag-source');
+    });
     
     el.addEventListener('click', () => {
         if(el.isCard && !el.isFaceUp){
             card.slot.flipTop();
         }
         pushUndo();
-        const autoSlots=game.after(card.slot); //handle clicks on empty slots
+        const autoSlots=game.after(card.slot, true); //handle clicks on empty slots
         autoMoveSlots(autoSlots);
     });
 }
@@ -809,7 +821,7 @@ function updateCardElement(card) {
     const el = card.element;
     card.id = `card-${card.rank}-${card.suit}`;
     el.setAttribute('draggable', game.draggable(card));
-    addCardEvents(card, el);
+    el.id = card.id;
     return el;
 }
 
@@ -925,8 +937,6 @@ function loadGameState(snapshot) {
     reRenderAllCards();
 }
 
-const undoStack = [];
-
 function pushUndo() {
     undoStack.push(snapGameState());
 }
@@ -1030,8 +1040,6 @@ function createRenderMenu() {
     currentRenderStyle = chosen;
     reRenderAllCards();
   });
-  //menu.style.zIndex = "1000";
-  //menu.style.position = "absolute";
   statusArea.appendChild(menu);
 }
 

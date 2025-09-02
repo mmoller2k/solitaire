@@ -93,7 +93,6 @@ drop(fromSlot, targetSlot, draggedCards) {
 
     if(!this._isValidSequence(draggedCards)) return false;
     if( targetSlot.type === 'foundation' ){
-        console.log('foun', draggedCards.length);
         return draggedCards.length === 13;
     }
     if (!topTarget) {
@@ -106,7 +105,7 @@ drop(fromSlot, targetSlot, draggedCards) {
 },
 
 
-after(fromSlot) {
+after(fromSlot, clickEvent = false) {
   if (fromSlot.type === 'tableau') {
     if (fromSlot.faceDown()) {
         fromSlot.flipTop();
@@ -120,7 +119,19 @@ after(fromSlot) {
 },
 
 auto(fromSlot) {
-    return null;
+    const foundationSlots = game.findSlots('foundation');
+    if(fromSlot.isEmpty())return false;
+    const card = fromSlot.top();
+    for (const slot of foundationSlots) {
+        if (this._foundationReady(card, slot)) {
+            fromSlot.moveTop(slot);
+            if(fromSlot.faceDown()){
+                fromSlot.flipTop();
+            }
+            return true;
+        }
+    }
+    return false;
 },
 
 victory() {

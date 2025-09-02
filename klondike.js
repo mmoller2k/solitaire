@@ -104,7 +104,7 @@ drop(fromSlot, toSlot, cards) {
   return false;
 },
 
-after(fromSlot) {
+after(fromSlot, clickEvent = false) {
   const waste = game.getSlot('waste');
   if (fromSlot.type === 'tableau') {
     if (fromSlot.faceDown()) { //auto flip next card
@@ -115,7 +115,8 @@ after(fromSlot) {
         const slots = [];
         slots.push( game.getSlot('waste') ); // Try waste pile first
         slots.push(...game.findSlots('tableau')); // Then tableau slots
-        return slots;
+        if(clickEvent) return slots;
+        return null;
         //this._autoMoveSlots(slots);
     }
   }
