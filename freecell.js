@@ -19,10 +19,10 @@ getConfig() {
 layout: [
   {
     slots: [
-      { id: 'c1', type: 'cell' },
-      { id: 'c2', type: 'cell' },
-      { id: 'c3', type: 'cell' },
-      { id: 'c4', type: 'cell' },
+      { id: 'c1', type: 'freecell' },
+      { id: 'c2', type: 'freecell' },
+      { id: 'c3', type: 'freecell' },
+      { id: 'c4', type: 'freecell' },
       { id: 'space', type: 'spacer', layout: 'blank' },
       { id: 'f1', type: 'foundation' },
       { id: 'f2', type: 'foundation' },
@@ -71,7 +71,7 @@ draggable(card) {
 },
 
 drop(fromSlot, targetSlot, draggedCards) {
-    if (targetSlot.type === 'cell') return targetSlot.isEmpty() && draggedCards.length == 1;
+    if (targetSlot.type === 'freecell') return targetSlot.isEmpty() && draggedCards.length == 1;
 
     if (targetSlot.type === 'foundation') {
     // Only allow one card at a time
@@ -91,9 +91,12 @@ drop(fromSlot, targetSlot, draggedCards) {
 
 after(fromSlot, clickEvent = false) {
   if (!clickEvent) return null;
-  if (fromSlot.type === 'cascade') {
+  if (fromSlot.type === 'cascade' || fromSlot.type === 'freecell') {
+    const autoslots = [];
+    autoslots.push(...game.findSlots('freecell'));
+    autoslots.push(...game.findSlots('cascade'));
     const card = fromSlot.top();
-    if (this._getReadyFoundation(card)) return game.findSlots('cascade');
+    if (this._getReadyFoundation(card)) return autoslots;
     else{
         const dest = this._getEmptyCell()
         if (dest){
@@ -107,7 +110,7 @@ after(fromSlot, clickEvent = false) {
 
 auto(fromSlot) {
     const foundationSlots = game.findSlots('foundation');
-    const cells = game.findSlots('cell');
+    const cells = game.findSlots('freecell');
     if(fromSlot.isEmpty())return false;
     const card = fromSlot.top();
     for (const slot of foundationSlots) {
@@ -136,7 +139,7 @@ _isValidSequence(cards) {
 
 _getEmptyCell() {
     const slots = [];
-    slots.push(...game.findSlots('cell'));
+    slots.push(...game.findSlots('freecell'));
     slots.push(...game.findSlots('cascade'));
     for( const slot of slots) {
         if( slot.isEmpty() ) return slot;
@@ -147,8 +150,8 @@ _getEmptyCell() {
 _countEmpty() {
     let n = 0;
     const slots = [];
-    slots.push(...game.findSlots('cell'));
-    slots.push(...game.findSlots('cascade'));
+    slots.push(...game.findSlots('freecell'));
+    //slots.push(...game.findSlots('cascade'));
     for( const slot of slots) {
         if( slot.isEmpty() ) n++;
     };

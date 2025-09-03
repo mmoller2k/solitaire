@@ -839,10 +839,7 @@ function createSlotElement(slot) {
         return container;
     }
 
-    if (slot.isEmpty()) {
-        container.appendChild(createEmptySlotElement(slot));
-        return container;
-    }
+    container.appendChild(createEmptySlotElement(slot));
     
     if(slot.fanMax > 0 && slot.fanMax < slot.size()) {
         fmax = slot.fanMax;
@@ -1048,6 +1045,7 @@ function autoMoveSlots(fromSlots, delay = 200) {
     const tryMove = () => { //capture 'this'
         for (let slot of fromSlots) {
             if (game.auto(slot)) {
+                slot.update();
                 setTimeout(tryMove, delay);
                 return true;
             }
