@@ -13,8 +13,7 @@ let currentRenderStyle = 'SVG';
 let dragSource = null;
 let dragTarget = null;
 let dragIndex = 0;
-let startTime = null;
-let timerInterval;
+let startTime = null, pauseTime, elapsed, timerId;
 const undoStack = [];
 
 function registerGame(config) {
@@ -26,7 +25,7 @@ function registerGame(config) {
 function startTimer() {
     stopTimer();
     startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 1000);
+    timerId = setInterval(updateTimer, 1000);
 }
 
 function updateTimer() {
@@ -38,8 +37,18 @@ function updateTimer() {
 }
 
 function stopTimer() {
-    clearInterval(timerInterval);
+    clearInterval(timerId);
     timerInterval = null;
+}
+
+function pauseTimer() {
+    clearInterval(timerId);
+    elapsed = Date.now() - startTime;
+}
+
+function resumeTimer() {
+    startTime = Date.now() - elapsed;
+    timerId = setInterval(updateTimer, 1000);
 }
 
 function resetTimer() {
@@ -1059,8 +1068,15 @@ function autoMoveSlots(fromSlots, delay = 200) {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  createGameMenu();
-  createRenderMenu();
+    createGameMenu();
+    createRenderMenu();
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            pauseTimer();
+        } else {
+            resumeTimer();
+        }
+    });
 });
 
 
