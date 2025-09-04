@@ -113,6 +113,7 @@ class Card {
         this.element = cardGraphic(this);
         this.element.setAttribute('draggable', false);
         this.element.classList.add('card');
+        this.id = `card-${rank}-${suit}`;
         addCardEvents(this, this.element);
     }
     
@@ -287,6 +288,7 @@ class Slot {
                 this.stack.cards.push(...movingCards);
                 const autoSlots = game.after(dragSource);
                 autoMoveSlots(autoSlots);
+                game.allSlots.forEach( s => s.update() );
                 showVictory();
             }
             else{
@@ -824,13 +826,14 @@ function addCardEvents(card, el) {
         pushUndo();
         const autoSlots=game.after(card.slot, true); //handle clicks on empty slots
         autoMoveSlots(autoSlots);
+        game.allSlots.forEach( s => s.update() );
     });
 }
 
 function updateCardElement(card) {
     const el = card.element;
-    card.id = `card-${card.rank}-${card.suit}`;
-    el.setAttribute('draggable', game.draggable(card));
+    const draggable = game.draggable(card);
+    el.setAttribute('draggable', draggable);
     el.id = card.id;
     return el;
 }
@@ -1054,7 +1057,6 @@ function autoMoveSlots(fromSlots, delay = 200) {
     const tryMove = () => { //capture 'this'
         for (let slot of fromSlots) {
             if (game.auto(slot)) {
-                slot.update();
                 setTimeout(tryMove, delay);
                 return true;
             }
