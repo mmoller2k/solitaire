@@ -47,8 +47,10 @@ function pauseTimer() {
 }
 
 function resumeTimer() {
-    startTime = Date.now() - elapsed;
-    timerId = setInterval(updateTimer, 1000);
+    if(!game.victory()) {
+        startTime = Date.now() - elapsed;
+        timerId = setInterval(updateTimer, 1000);
+    }
 }
 
 function resetTimer() {
